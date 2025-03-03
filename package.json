@@ -1,0 +1,24 @@
+{
+    "name": "backup-inquirer",
+    "version": "1.0.0",
+    "description": "A CLI tool to backup files and directories with semantic versioning.",
+    "main": "lib/backup-inquirer.js",
+    "bin": {
+      "backup": "./bin/backup.js"
+    },
+    "type": "module",
+    "scripts": {
+      "start": "node bin/backup.js"
+    },
+    "keywords": [
+      "backup",
+      "cli",
+      "semantic-versioning",
+      "inquirer"
+    ],
+    "author": "Dave Darch",
+    "license": "MIT",
+    "dependencies": {
+      "inquirer": "^8.2.0"
+    }
+  }
