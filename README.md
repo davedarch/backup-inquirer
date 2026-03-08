@@ -157,40 +157,136 @@ backup
          Location: /path/to/your/project
     
 
+## ZSH Versions (macOS Native)
+
+Two standalone ZSH scripts are included that replicate all functionality without requiring Node.js or any npm dependencies. ZSH is the default shell on macOS (Catalina and later).
+
+### backup.zsh — Pure ZSH, Zero Dependencies
+
+No dependencies at all. Uses a numbered toggle list for item selection and ZSH's built-in `select` for version type prompts.
+
+```zsh
+# Make executable (first time only)
+chmod +x backup.zsh
+
+# Run from the directory you want to back up
+./backup.zsh
+
+# Or specify a target directory
+./backup.zsh /path/to/directory
+```
+
+**Item selection:**
+```
+Select files and/or directories to backup:
+(Enter numbers to toggle, 'a' to select all, 'd' to deselect all, empty to confirm)
+
+  *  1) [FILE] README.md
+     2) [DIR]  src
+  *  3) [FILE] config.json
+
+>
+```
+
+**Version type:**
+```
+Choose version increment type for "README.md":
+1) Patch (bug fixes) - x.x.X
+2) Minor (new features) - x.X.0
+3) Major (breaking changes) - X.0.0
+Enter choice [1-3]:
+```
+
+### backup-fzf.zsh — ZSH + fzf (Prettier UI)
+
+Uses [fzf](https://github.com/junegunn/fzf) for fuzzy-searchable multi-select and single-select menus.
+
+```zsh
+# Install fzf (one time)
+brew install fzf
+
+# Make executable (first time only)
+chmod +x backup-fzf.zsh
+
+# Run
+./backup-fzf.zsh
+./backup-fzf.zsh /path/to/directory
+```
+
+**Item selection** — use Tab to toggle, type to fuzzy search, Enter to confirm:
+```
+  Backup>
+  * [DIR]  src
+    [FILE] README.md
+  * [FILE] config.json
+  Select items to backup (Tab to toggle, Enter to confirm)
+```
+
+**Version type** — single-select fzf menu:
+```
+  Version>
+  > Patch (bug fixes) - x.x.X
+    Minor (new features) - x.X.0
+    Major (breaking changes) - X.0.0
+  Version increment for "README.md":
+```
+
+The script checks for fzf on startup and exits with install instructions if it's missing.
+
+### Version Comparison
+
+| | Node.js (`backup`) | ZSH (`backup.zsh`) | ZSH + fzf (`backup-fzf.zsh`) |
+|---|---|---|---|
+| Dependencies | Node.js, npm, inquirer | None | fzf |
+| Multi-select UI | Inquirer checkbox | Numbered toggle | fzf fuzzy multi-select |
+| Version prompt | Inquirer list | ZSH `select` | fzf single-select |
+| Startup speed | ~200ms+ | Instant | Instant |
+| macOS built-in | No | Yes | No (fzf via brew) |
+
+### ZSH Versions — Testing To-Do
+
+The ZSH scripts have not yet been tested. The following should be validated on macOS before use in production:
+
+- [ ] **Basic execution** — both scripts launch without errors on macOS ZSH
+- [ ] **Item listing** — files and directories display correctly with `[FILE]`/`[DIR]` labels
+- [ ] **Exclusion filtering** — `node_modules`, `.git`, `backup_public`, `lib`, and `.DS_Store` are excluded from the item list
+- [ ] **Multi-select (backup.zsh)** — toggling by number, select all (`a`), deselect all (`d`), and confirming with empty input all work correctly
+- [ ] **Multi-select (backup-fzf.zsh)** — Tab toggling and Enter confirmation work; type labels are stripped correctly from selections
+- [ ] **First backup defaults to 0.1.0** — when no prior versioned copy exists
+- [ ] **Patch increment** — e.g. `0.1.0` -> `0.1.1`
+- [ ] **Minor increment** — e.g. `0.1.1` -> `0.2.0`
+- [ ] **Major increment** — e.g. `0.2.0` -> `1.0.0`
+- [ ] **File versioning format** — version inserted before extension (e.g. `notes.txt` -> `notes_0.1.0.txt`)
+- [ ] **Directory versioning format** — version appended to name (e.g. `src` -> `src_0.1.0`)
+- [ ] **Files with multiple dots** — e.g. `my.config.json` should become `my.config_0.1.0.json`
+- [ ] **Files without extensions** — e.g. `Makefile` -> `Makefile_0.1.0`
+- [ ] **Directory copy exclusions** — when backing up a directory, `node_modules`, `.git`, and `backup_public` inside it are not copied
+- [ ] **Hidden files in directories** — dotfiles inside directories are included in copies
+- [ ] **Empty directories** — copied without error
+- [ ] **Multiple items in one run** — selecting several items and versioning each independently
+- [ ] **Consecutive runs** — running backup twice picks up the latest version and increments correctly
+- [ ] **fzf missing (backup-fzf.zsh)** — displays install instructions and exits gracefully
+- [ ] **Custom directory argument** — `./backup.zsh /some/path` operates on the specified path
+- [ ] **Invalid directory argument** — displays error and exits
+
 ## 🛠️ Development
 
 ### Project Structure
 
-your-backup-tool/
-
-├── bin/
-
-│   └── backup.js         # Executable script
-
-├── lib/
-
-│   └── backup-inquirer.js # Main backup logic
-
-├── package.json
-
-├── README.md
-
-└── .gitignore
+```
+backup-inquirer/
+├── bin/
+│   └── backup.js            # Node.js CLI entry point
+├── lib/
+│   └── backup-inquirer.js   # Node.js core backup logic
+├── backup.zsh               # ZSH version (zero dependencies)
+├── backup-fzf.zsh           # ZSH version (fzf UI)
+├── package.json
+├── README.md
+└── .gitignore
+```
 
 ### Scripts
-
-- Executable Script (bin/backup.js): Bridges the CLI command to the main backup function.
-    
-      #!/usr/bin/env node
-    
-      import { createBackup } from '../lib/backup-inquirer.js';
-    
-      // Execute the backup process
-    
-      createBackup();
-    
-
-- Main Backup Logic (lib/backup-inquirer.js): Contains all functions related to backup operations, versioning, and user prompts.
 
 ### Adding Command-Line Arguments (Optional)
 
